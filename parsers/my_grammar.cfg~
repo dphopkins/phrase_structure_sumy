@@ -1,0 +1,2 @@
+S -> W S | W
+W -> 'Maybe' | 'the' | 'Clippers' | 'should'  'trade' | 'Blake' | 'Griffin' | '.'
