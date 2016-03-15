@@ -11,6 +11,8 @@ from .parser import DocumentParser
 
 class PlaintextParser(DocumentParser):
     """
+    STANDARD PARSING FOR SUMMARIES
+    
     Parses simple plain text in following format:
 
     HEADING

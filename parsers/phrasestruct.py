@@ -16,6 +16,8 @@ from nltk.data import load
 
 class PlaintextParser(DocumentParser):
     """
+    NON-ORTHOGRAPHIC (PHRASE-STRUCTURE) PARSING FOR SUMMARIES
+    
     Parses simple plain text in following format:
 
     HEADING
