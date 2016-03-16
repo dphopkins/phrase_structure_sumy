@@ -30,7 +30,9 @@ class AbstractSummarizer(object):
     def normalize_word(self, word):
         return to_unicode(word).lower()
 
-    def _get_best_sentences(self, sentences, count, rating, *args, **kwargs):
+    ############################# CHANGED BY DAN ############################
+    # def _get_best_sentences(self, sentences, count, rating, *args, **kwargs):
+    def _get_best_sentences(self, sentences, rating, *args, **kwargs):    
         rate = rating
         if isinstance(rating, dict):
             assert not args and not kwargs
@@ -41,11 +43,44 @@ class AbstractSummarizer(object):
 
         # sort sentences by rating in descending order
         infos = sorted(infos, key=attrgetter("rating"), reverse=True)
-        # get `count` first best rated sentences
-        if not isinstance(count, ItemsCount):
-            count = ItemsCount(count)
-        infos = count(infos)
+
+        # # get `count` first best rated sentences
+        # if not isinstance(count, ItemsCount):
+        #     count = ItemsCount(count)
+        # infos = count(infos)
+
+
+        # ADDED BY DAN ##############################################
+        length = 0
+        summary = ""
+        new_infos = []
+
+        for i in infos:
+            # i.sentence is the Sentence
+            text = i.sentence._text
+
+            if text not in summary:
+                new_summary_length = length + len(text.split())
+
+                # if we've reached max summary length...
+                if new_summary_length == 100:
+                    length += len(text.split()) # number of words
+                    summary += text
+                    new_infos.append(i)
+                    break
+                # if the next sentence would make the summary too long
+                elif new_summary_length > 100: 
+                    pass
+                # otherwise, add it and keep looking
+                else:
+                    length += len(text.split()) # number of words
+                    summary += text
+                    new_infos.append(i)
+        infos = new_infos
+        #############################################################
+
         # sort sentences by their order in document
         infos = sorted(infos, key=attrgetter("order"))
 
         return tuple(i.sentence for i in infos)
+    #########################################################################
