@@ -31,8 +31,12 @@ class AbstractSummarizer(object):
         return to_unicode(word).lower()
 
     ############################# CHANGED BY DAN ############################
-    # def _get_best_sentences(self, sentences, count, rating, *args, **kwargs):
-    def _get_best_sentences(self, sentences, rating, *args, **kwargs):    
+    def _get_best_sentences(self, sentences, rating, *args, **kwargs):
+        # self = LuhnPhraseStruct
+        # sentences = LuhnPhraseStruct.document.sentences
+        # rating = LuhnPhraseStruct.rate_sentence
+        # args are significant words
+        
         rate = rating
         if isinstance(rating, dict):
             assert not args and not kwargs
@@ -40,22 +44,19 @@ class AbstractSummarizer(object):
 
         infos = (SentenceInfo(s, o, rate(s, *args, **kwargs))
             for o, s in enumerate(sentences))
+        
+        # WHEN WE GET HERE, ALL RATINGS ARE 0
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         # sort sentences by rating in descending order
         infos = sorted(infos, key=attrgetter("rating"), reverse=True)
-
-        # # get `count` first best rated sentences
-        # if not isinstance(count, ItemsCount):
-        #     count = ItemsCount(count)
-        # infos = count(infos)
-
-
-        # ADDED BY DAN ##############################################
+        
         length = 0
         summary = ""
         new_infos = []
 
         for i in infos:
+                
             # i.sentence is the Sentence
             text = i.sentence._text
 
@@ -77,7 +78,6 @@ class AbstractSummarizer(object):
                     summary += text
                     new_infos.append(i)
         infos = new_infos
-        #############################################################
 
         # sort sentences by their order in document
         infos = sorted(infos, key=attrgetter("order"))

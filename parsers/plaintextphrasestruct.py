@@ -90,10 +90,11 @@ class PlaintextParser(DocumentParser):
         
         ######################## ADDED BY DAN ########################
         for par in paragraphs:
+            # print(par._sentences) # THIS IS THE FULL TUPLE OF SENTENCES IN EACH PARAGRAPH
             # print(self._to_sentence('Hey there.'))
             # par._sentences = (self._to_sentence('Hey there.'), self._to_sentence('You are my friend.'))
             par._sentences = self.getRealSentenceTuple(par._sentences)
-            #print(par._sentences) # par._sentences is a tuple of Sentences
+            # print(par._sentences) # par._sentences is a tuple of Sentences
         ##############################################################
 
         return ObjectDocumentModel(paragraphs)

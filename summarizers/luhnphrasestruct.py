@@ -22,10 +22,8 @@ class LuhnSummarizer(AbstractSummarizer):
         self._stop_words = frozenset(map(self.normalize_word, words))
 
     ############################# CHANGED BY DAN ############################
-    # def __call__(self, document, sentences_count):
-    def __call__(self, document):
-        words = self._get_significant_words(document.words)
-        # return self._get_best_sentences(document.sentences, sentences_count, self.rate_sentence, words)
+    def __call__(self, document, ortho_document):
+        words = self._get_significant_words(ortho_document.words)
         return self._get_best_sentences(document.sentences, self.rate_sentence, words)
     #########################################################################
 
@@ -45,6 +43,7 @@ class LuhnSummarizer(AbstractSummarizer):
     def rate_sentence(self, sentence, significant_stems):
         ratings = self._get_chunk_ratings(sentence, significant_stems)
         return max(ratings) if ratings else 0
+        # THIS IS WHERE IT IS SETTING EVERYTHING TO 0
 
     def _get_chunk_ratings(self, sentence, significant_stems):
         chunks = []
