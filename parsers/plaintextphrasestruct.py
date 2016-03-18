@@ -89,25 +89,40 @@ class PlaintextParser(DocumentParser):
         # the Paragraph is added to the list of Paragraph objects (paragraphs)
         
         ######################## ADDED BY DAN ########################
+        sentences_so_far = 0
+        list_of_indices = []
         for par in paragraphs:
             # print(par._sentences) # full tuple of sentences in each paragraph
-            par._sentences = self.getRealSentenceTuple(par._sentences)
-            # print(par._sentences) # par._sentences is a tuple of Sentences
-        ##############################################################
+            orthographic_sentences = self.getRealSentenceTuple(par._sentences)
+            par._sentences = orthographic_sentences[0] # the sentences themselves
+            indexes = orthographic_sentences[1] # the indexes within the paragraph of the original sentence the ortho belongs to
+            for i in range(0, len(indexes)):
+                indexes[i] += sentences_so_far
+            sentences_so_far = indexes[-1] + 1
+            list_of_indices.append(indexes)
 
-        return ObjectDocumentModel(paragraphs)
+            # print(par._sentences) # par._sentences is a tuple of Sentences
+        
+        # list_of_indices is now a list of all the indices of the orthos (gives position of original sentence)
+        # return ObjectDocumentModel(paragraphs) # original
+        return ObjectDocumentModel(paragraphs), list_of_indices
+        ##############################################################
         # you can call Paragraph.sentences to get all the Sentences in that Paragraph
 
     ######################## ADDED BY DAN ########################
     def getRealSentenceTuple(self, sentences): # where sentences is a tuple of Sentences
         to_tuple = []
+        original_sentence_number = 0 # unsure if it should start on 0 or 1
+        originals = [] # keeps track of the original sentence number in the paragraph
         for s in sentences: # for each Sentence
-            # print(s)
             converted = self.getNonOrthos(s) # function to get list of non-ortho Sentences
-            # converted is a list of Sentences
             for non_ortho in converted:
                 to_tuple.append(non_ortho)
-        return tuple(to_tuple) # convert Sentence list to tuple
+                originals.append(original_sentence_number)
+            original_sentence_number += 1
+        # print(originals) # list of sentence indexes
+        tupled = tuple(to_tuple) # convert Sentence list to tuple
+        return tupled, originals
 
     def getNonOrthos(self, sentence): # where sentence is a Sentence
         """ Converts a Sentence into a list of sub-orthographic Sentence(s)

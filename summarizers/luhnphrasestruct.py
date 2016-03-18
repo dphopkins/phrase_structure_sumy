@@ -23,8 +23,9 @@ class LuhnSummarizer(AbstractSummarizer):
 
     ############################# CHANGED BY DAN ############################
     def __call__(self, document, ortho_document):
+        # document is a tuple with paragraphs as [0] and indices as [1]
         words = self._get_significant_words(ortho_document.words)
-        return self._get_best_sentences(document.sentences, self.rate_sentence, words)
+        return self._get_best_sentences(document[0].sentences, self.rate_sentence, words)
     #########################################################################
 
     def _get_significant_words(self, words):
