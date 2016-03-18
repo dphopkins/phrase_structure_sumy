@@ -90,9 +90,7 @@ class PlaintextParser(DocumentParser):
         
         ######################## ADDED BY DAN ########################
         for par in paragraphs:
-            # print(par._sentences) # THIS IS THE FULL TUPLE OF SENTENCES IN EACH PARAGRAPH
-            # print(self._to_sentence('Hey there.'))
-            # par._sentences = (self._to_sentence('Hey there.'), self._to_sentence('You are my friend.'))
+            # print(par._sentences) # full tuple of sentences in each paragraph
             par._sentences = self.getRealSentenceTuple(par._sentences)
             # print(par._sentences) # par._sentences is a tuple of Sentences
         ##############################################################
@@ -105,7 +103,9 @@ class PlaintextParser(DocumentParser):
         to_tuple = []
         for s in sentences: # for each Sentence
             converted = self.getNonOrthos(s) # function to get list of non-ortho Sentences
-            # converted = [self._to_sentence('Hey there.'), self._to_sentence('You are my friend.')]
+            # converted is a list of lists
+            # each sublist represents a sentence
+            # each item in the sublist represents a potential non-orthographic sentence
             for non_ortho in converted:
                 to_tuple.append(non_ortho)
         return tuple(to_tuple) # convert Sentence list to tuple
@@ -131,6 +131,7 @@ class PlaintextParser(DocumentParser):
 
         grammar = load('file:grammar.cfg')
         parser = RecursiveDescentParser(grammar)
+        # ChartParser takes ~45 minutes to parse and summarize a 500 word doc vs. ~3 seconds for RDParser
 
         words = self.tokenize_words(text) # tuple of words that make up a sentence (no punctuation though...not even commas)
 
