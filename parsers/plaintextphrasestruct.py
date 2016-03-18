@@ -102,10 +102,9 @@ class PlaintextParser(DocumentParser):
     def getRealSentenceTuple(self, sentences): # where sentences is a tuple of Sentences
         to_tuple = []
         for s in sentences: # for each Sentence
+            # print(s)
             converted = self.getNonOrthos(s) # function to get list of non-ortho Sentences
-            # converted is a list of lists
-            # each sublist represents a sentence
-            # each item in the sublist represents a potential non-orthographic sentence
+            # converted is a list of Sentences
             for non_ortho in converted:
                 to_tuple.append(non_ortho)
         return tuple(to_tuple) # convert Sentence list to tuple
