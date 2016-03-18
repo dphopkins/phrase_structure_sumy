@@ -44,9 +44,6 @@ class AbstractSummarizer(object):
 
         infos = (SentenceInfo(s, o, rate(s, *args, **kwargs))
             for o, s in enumerate(sentences))
-        
-        # WHEN WE GET HERE, ALL RATINGS ARE 0
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         # sort sentences by rating in descending order
         infos = sorted(infos, key=attrgetter("rating"), reverse=True)
