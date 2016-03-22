@@ -31,19 +31,31 @@ class AbstractSummarizer(object):
         return to_unicode(word).lower()
 
     ############################# CHANGED BY DAN ############################
-    def _get_best_sentences(self, sentences, rating, *args, **kwargs):
+    def _get_best_sentences(self, sentences, indices, rating, *args, **kwargs):
         # self = LuhnPhraseStruct
         # sentences = LuhnPhraseStruct.document.sentences
+        # indices = [[0, 0, 1, 1, 1], [2, 2, 2, 2], ...]
         # rating = LuhnPhraseStruct.rate_sentence
         # args are significant words
-    
+
+        new_indices = []
+        for par in indices:
+            for i in par:
+                new_indices.append(i)
+        indices = new_indices # [0,0,1,1,1,2,2,2,2]
+        
         rate = rating
         if isinstance(rating, dict):
             assert not args and not kwargs
             rate = lambda s: rating[s]
 
-        infos = (SentenceInfo(s, o, rate(s, *args, **kwargs))
-            for o, s in enumerate(sentences))
+        # length of indices and sentences are equal
+        infos = []
+        for i in range(0, len(indices)):
+            s = sentences[i]
+            o = indices[i]
+            si = SentenceInfo(s, o, rate(s, *args, **kwargs))
+            infos.append(si)
 
         # sort sentences by rating in descending order
         infos = sorted(infos, key=attrgetter("rating"), reverse=True)
@@ -58,7 +70,8 @@ class AbstractSummarizer(object):
             text = i.sentence._text
 
             # if the text is not a substring of the summary...
-            if text not in summary:
+            # and if the index (sentence) has not been used before...
+            if text not in summary and not any(i.order == ni.order for ni in new_infos):
 
                 new_summary_length = length + len(text.split())
 

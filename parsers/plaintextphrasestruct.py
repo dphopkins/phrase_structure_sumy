@@ -12,6 +12,8 @@ from .parser import DocumentParser
 import nltk
 from nltk import RecursiveDescentParser
 from nltk.data import load
+from nltk import word_tokenize
+from nltk import pos_tag
 ##############################################################
 
 class PlaintextParser(DocumentParser):
@@ -82,6 +84,7 @@ class PlaintextParser(DocumentParser):
                 current_paragraph.append(line)
 
         sentences = self._to_sentences(current_paragraph)
+
         # converts list of lines in current_paragraph to list of Sentences
         paragraphs.append(Paragraph(sentences))
         # converts list of Sentences to tuple of Sentences
@@ -140,14 +143,14 @@ class PlaintextParser(DocumentParser):
 
         """
         text = sentence._text # the actual sentence text (string)
-        punctuation = text[-1] # keep track of punctuation of the ortho
         sentences = []
+        words = word_tokenize(text)
+        punctuation = words[-1] # keep track of punctuation of the ortho
+        words = words[:-1]
 
         grammar = load('file:grammar.cfg')
         parser = RecursiveDescentParser(grammar)
         # ChartParser takes ~45 minutes to parse and summarize a 500 word doc vs. ~3 seconds for RDParser
-
-        words = self.tokenize_words(text) # tuple of words that make up a sentence (no punctuation though...not even commas)
 
         # num_options = len(words) + (len(words)-1) + ... + 1 = (len(words)/2) * (len(words) + 1)
         # algorithm is O(n^2)... let's try to make that better
@@ -155,28 +158,59 @@ class PlaintextParser(DocumentParser):
             sofar = ''
 
             for j in range(i, len(words)):
+                current = words[j]
+                if any(sym in current for sym in (",", "'s", ":")): sofar = sofar[:-1]
+                elif current == "'ve": words[j] = "have"
+                elif current == "n't": words[j] = "not"
+                elif current == "'ll": words[j] = "will"
+
+                # assume apostrophe is for possesion
+                elif current == "'" and words[j-1][-1] == "s": sofar = sofar[:-1]
+
+                elif current == "'d":
+                    if nltk.pos_tag([words[j+1]])[0][1] == 'VBN':
+                        words[j] = "had"
+                    else:
+                        words[j] = "would"
+
                 sofar += words[j]
 
-                is_sentence = True
-                try:
-                    to_try = self.tokenize_words(sofar) # convert back to list of words
-                    parser.parse(to_try) # see if this 'sentence' is a sentence
-                except: # ValueError?
-                    is_sentence = False
+                # ensures that each sentence is at least two words long and doesn't end in a comma
+                if i != j and not any(sym in current for sym in (",", ":", ";", "'", "'s", "'d", "'ll", "'ve")):
+                    is_sentence = True
+                    try:
+                        to_try = self.tokenize_words(sofar) # convert back to list of words
+                        parser.parse(to_try) # see if this 'sentence' is a sentence
+                    except ValueError: # ValueError?
+                        is_sentence = False
+                        # print("SENTENCE REJECTED BY GRAMMAR")
 
-                if is_sentence:
-                    the_sent = sofar.capitalize()
-                    the_sent += punctuation
-                    sentences.append(the_sent) # append the non-orthographic sentence to the list
+                    if is_sentence:
+                        # capitalize() makes proper nouns lower case so we'll do our own capitalization
+                        the_sent = sofar[0].upper() + sofar[1:]
+                        # the_sent = sofar.capitalize()
+                        the_sent += punctuation
+                        sentences.append(the_sent) # append the non-orthographic sentence to the list
 
                 sofar += ' ' # get read for the next word
 
-        sentences = self._to_sentences(sentences) # takes a list of sentences (strings) and returns a list of Sentences
+        # ORIGINAL METHOD
+        # sentences = self._to_sentences(sentences) # takes a list of sentences (strings) and returns a list of Sentences
+        # self._to_sentences incorrectly converts some sentences
+        # this results in things like Paul suffered a. Paul suffered a shoulder.
+        # old method incorrectly assumes that it's being passed a line
+        # however, we know we are passing a sentence
+
+        # NEW METHOD
+        # sentences is a list of strings
+        # sentences is created for every paragraph
+        sentences = map(self._to_sentence, sentences)
 
         return sentences # list of all Sentences within the orthographic sentence
     ##############################################################
 
     def _to_sentences(self, lines):
+
         text = ""
         sentence_objects = []
 
@@ -184,6 +218,7 @@ class PlaintextParser(DocumentParser):
             if isinstance(line, Sentence):
                 if text:
                     sentences = self.tokenize_sentences(text)
+                    print(sentences)
                     sentence_objects += map(self._to_sentence, sentences)
 
                 sentence_objects.append(line)

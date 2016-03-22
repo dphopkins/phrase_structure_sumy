@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import division, print_function, unicode_literals
 
 from ..models import TfDocumentModel
-from ._summarizer import AbstractSummarizer
+from ._pssummarizer import AbstractSummarizer
 
 
 class LuhnSummarizer(AbstractSummarizer):
@@ -25,7 +25,7 @@ class LuhnSummarizer(AbstractSummarizer):
     def __call__(self, document, ortho_document):
         # document is a tuple with paragraphs as [0] and indices as [1]
         words = self._get_significant_words(ortho_document.words)
-        return self._get_best_sentences(document[0].sentences, self.rate_sentence, words)
+        return self._get_best_sentences(document[0].sentences, document[1], self.rate_sentence, words)
     #########################################################################
 
     def _get_significant_words(self, words):
