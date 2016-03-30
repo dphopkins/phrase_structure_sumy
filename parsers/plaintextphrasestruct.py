@@ -101,7 +101,8 @@ class PlaintextParser(DocumentParser):
             indexes = orthographic_sentences[1] # the indexes within the paragraph of the original sentence the ortho belongs to
             for i in range(0, len(indexes)):
                 indexes[i] += sentences_so_far
-            sentences_so_far = indexes[-1] + 1
+
+            if indexes: sentences_so_far = indexes[-1] + 1
             list_of_indices.append(indexes)
 
             # print(par._sentences) # par._sentences is a tuple of Sentences
