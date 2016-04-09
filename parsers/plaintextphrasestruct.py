@@ -67,33 +67,27 @@ class PlaintextParser(DocumentParser):
     def document(self):
         current_paragraph = []
         paragraphs = []
+
         for line in self._text.splitlines(): # splits at newline
             line = line.strip() # gets rid of whitespace
-            if line.isupper():
-                heading = Sentence(line, self._tokenizer, is_heading=True)
-                current_paragraph.append(heading)
-            elif not line and current_paragraph:
+            if not line and current_paragraph: # end of paragraph
                 sentences = self._to_sentences(current_paragraph)
                 # converts list of lines in current_paragraph to list of Sentences
                 paragraphs.append(Paragraph(sentences))
                 # converts list of Sentences to tuple of Sentences
                 # stores that as a property of the Paragraph object
                 # the Paragraph is added to the list of Paragraph objects (paragraphs)
-                current_paragraph = []
-            elif line:
+                current_paragraph = [] # reset paragraph
+            else:
                 current_paragraph.append(line)
 
+        # for last paragraph
         sentences = self._to_sentences(current_paragraph)
-
-        # converts list of lines in current_paragraph to list of Sentences
         paragraphs.append(Paragraph(sentences))
-        # converts list of Sentences to tuple of Sentences
-        # stores that as a property of the Paragraph object
-        # the Paragraph is added to the list of Paragraph objects (paragraphs)
         
-        ######################## ADDED BY DAN ########################
         sentences_so_far = 0
         list_of_indices = []
+        ### LOOK HERE IF THERE ARE PROBLEMS
         for par in paragraphs:
             # print(par._sentences) # full tuple of sentences in each paragraph
             orthographic_sentences = self.getRealSentenceTuple(par._sentences)
