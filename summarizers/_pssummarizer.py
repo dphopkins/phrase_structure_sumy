@@ -70,24 +70,33 @@ class AbstractSummarizer(object):
             text = i.sentence._text
 
             # if the text is not a substring of the summary...
-            # and if the index (sentence) has not been used before...
-            if text not in summary and not any(i.order == ni.order for ni in new_infos):
+            if text not in summary:
 
-                new_summary_length = length + len(text.split())
-
-                # if we've reached max summary length...
-                if new_summary_length == 100:
-                    length += len(text.split()) # number of words
-                    summary += text
-                    new_infos.append(i)
-                # if the next sentence would make the summary too long
-                elif new_summary_length > 100: 
+                if any(i.order == ni.order for ni in new_infos):
+                    # TODO: IF THE SENTENCE HAS BEEN USED BEFORE
+                    # TODO: right now, we use sentence # as order...
+                    # TODO: that won't work if we start accepting
+                    # TODO: multiple ps-sents from the same ortho
+                    # TODO: since they will have the same "order"
+                    # TODO: but when we put them back together
+                    # TODO: we need to know the actual order!
                     pass
-                # otherwise, add it and keep looking
-                else:
-                    length += len(text.split()) # number of words
-                    summary += text
-                    new_infos.append(i)
+                else: # if the index (sentence) has not been used before
+                    new_summary_length = length + len(text.split())
+
+                    # if we've reached max summary length...
+                    if new_summary_length == 100:
+                        length += len(text.split()) # number of words
+                        summary += text
+                        new_infos.append(i)
+                    # if the next sentence would make the summary too long
+                    elif new_summary_length > 100: 
+                        pass
+                    # otherwise, add it and keep looking
+                    else:
+                        length += len(text.split()) # number of words
+                        summary += text
+                        new_infos.append(i)
 
         infos = new_infos
 

@@ -36,7 +36,7 @@ class AbstractSummarizer(object):
         # sentences = LuhnPhraseStruct.document.sentences
         # rating = LuhnPhraseStruct.rate_sentence
         # args are significant words
-    
+
         rate = rating
         if isinstance(rating, dict):
             assert not args and not kwargs

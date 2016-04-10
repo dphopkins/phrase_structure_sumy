@@ -25,13 +25,14 @@ class LuhnSummarizer(AbstractSummarizer):
     def __call__(self, document, ortho_document):
         # document is a tuple with paragraphs as [0] and indices as [1]
         words = self._get_significant_words(ortho_document.words)
-        return self._get_best_sentences(document[0].sentences, document[1], self.rate_sentence, words)
+        sents = document[0].sentences
+        indices = document[1]
+        return self._get_best_sentences(sents, indices, self.rate_sentence, words)
     #########################################################################
 
     def _get_significant_words(self, words):
         words = map(self.normalize_word, words)
         words = tuple(self.stem_word(w) for w in words if w not in self._stop_words)
-
         model = TfDocumentModel(words)
 
         # take only best `significant_percentage` % words
@@ -44,7 +45,6 @@ class LuhnSummarizer(AbstractSummarizer):
     def rate_sentence(self, sentence, significant_stems):
         ratings = self._get_chunk_ratings(sentence, significant_stems)
         return max(ratings) if ratings else 0
-        # THIS IS WHERE IT IS SETTING EVERYTHING TO 0
 
     def _get_chunk_ratings(self, sentence, significant_stems):
         chunks = []
