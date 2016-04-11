@@ -11,6 +11,22 @@ from .._compat import to_unicode
 from ..nlp.stemmers import null_stemmer
 
 
+def longest_common_substring(s1, s2):
+    """ Thanks to: https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#Python """
+    m = [[0] * (1 + len(s2)) for i in xrange(1 + len(s1))]
+    longest, x_longest = 0, 0
+    for x in xrange(1, 1 + len(s1)):
+        for y in xrange(1, 1 + len(s2)):
+            if s1[x - 1] == s2[y - 1]:
+                m[x][y] = m[x - 1][y - 1] + 1
+                if m[x][y] > longest:
+                    longest = m[x][y]
+                    x_longest = x
+            else:
+                m[x][y] = 0
+    return s1[x_longest - longest: x_longest]
+
+
 SentenceInfo = namedtuple("SentenceInfo", ("sentence", "order", "rating",))
 
 
@@ -71,8 +87,50 @@ class AbstractSummarizer(object):
 
             # if the text is not a substring of the summary...
             if text not in summary:
+                
+                matches = []
+                for ni in new_infos:
+                    if i.order == ni.order:
+                        matches.append(ni)
 
-                if any(i.order == ni.order for ni in new_infos):
+                # now matches is the list of info objects
+                # that have the same order as i
+
+                if matches:
+                    # pass
+                    # TODO: RETHINK THIS ALGORITHM
+                    accept = True
+                    for m in matches:
+                        x = longest_common_substring(text, m.sentence._text)
+                        x = len(x.split())
+                        if x > (.25*len(text.split())) or x > 4: # if 25% or more overlap or 5 or more words of overlap
+                            accept = False
+                            break
+
+                    if accept:
+                        new_summary_length = length + len(text.split())
+
+                        # if we've reached max summary length...
+                        if new_summary_length == 100:
+                            length += len(text.split()) # number of words
+                            summary += text
+                            new_infos.append(i)
+                        # if the next sentence would make the summary too long
+                        elif new_summary_length > 100: 
+                            pass
+                        # otherwise, add it and keep looking
+                        else:
+                            length += len(text.split()) # number of words
+                            summary += text
+                            new_infos.append(i)
+                    else:
+                        pass
+
+
+                    # longest_common_substring(s1, s2) returns overlap
+                    # we want the len() of the split() of that
+
+                    # go through the matches and compare with text
                     # TODO: IF THE SENTENCE HAS BEEN USED BEFORE
                     # TODO: right now, we use sentence # as order...
                     # TODO: that won't work if we start accepting
@@ -80,7 +138,8 @@ class AbstractSummarizer(object):
                     # TODO: since they will have the same "order"
                     # TODO: but when we put them back together
                     # TODO: we need to know the actual order!
-                    pass
+                    
+
                 else: # if the index (sentence) has not been used before
                     new_summary_length = length + len(text.split())
 
@@ -97,7 +156,7 @@ class AbstractSummarizer(object):
                         length += len(text.split()) # number of words
                         summary += text
                         new_infos.append(i)
-
+    
         infos = new_infos
 
         # sort sentences by their order in document
