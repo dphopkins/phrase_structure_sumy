@@ -152,42 +152,43 @@ class PlaintextParser(DocumentParser):
         for i in range(0, len(words)):
             sofar = ''
 
-            for j in range(i, len(words)):
-                current = words[j]
-                if any(sym in current for sym in (",", "'s", ":")): sofar = sofar[:-1]
-                elif current == "'ve": words[j] = "have"
-                elif current == "n't": words[j] = "not"
-                elif current == "'ll": words[j] = "will"
+            if words[i] != "'s": # JUST ADDED
+                for j in range(i, len(words)):
+                    current = words[j]
+                    if any(sym in current for sym in (",", "'s", ":")): sofar = sofar[:-1]
+                    elif current == "'ve": words[j] = "have"
+                    elif current == "n't": words[j] = "not"
+                    elif current == "'ll": words[j] = "will"
 
-                # assume apostrophe is for possesion
-                elif current == "'" and words[j-1][-1] == "s": sofar = sofar[:-1]
+                    # assume apostrophe is for possesion
+                    elif current == "'" and words[j-1][-1] == "s": sofar = sofar[:-1]
 
-                elif current == "'d":
-                    if nltk.pos_tag([words[j+1]])[0][1] == 'VBN':
-                        words[j] = "had"
-                    else:
-                        words[j] = "would"
+                    elif current == "'d":
+                        if nltk.pos_tag([words[j+1]])[0][1] == 'VBN':
+                            words[j] = "had"
+                        else:
+                            words[j] = "would"
 
-                sofar += words[j]
+                    sofar += words[j]
 
-                # ensures that each sentence is at least two words long and doesn't end in a comma
-                if i != j and not any(sym in current for sym in (",", ":", ";", "'", "'s", "'d", "'ll", "'ve")):
-                    is_sentence = True
-                    try:
-                        to_try = self.tokenize_words(sofar) # convert back to list of words
-                        parser.parse(to_try) # see if this 'sentence' is a sentence
-                    except ValueError: # ValueError?
-                        is_sentence = False
-                        # print("SENTENCE REJECTED BY GRAMMAR")
+                    # ensures that each sentence is at least two words long and doesn't end in a comma
+                    if i != j and not any(sym in current for sym in (",", ":", ";", "'", "'s", "'d", "'ll", "'ve")):
+                        is_sentence = True
+                        try:
+                            to_try = self.tokenize_words(sofar) # convert back to list of words
+                            parser.parse(to_try) # see if this 'sentence' is a sentence
+                        except ValueError: # ValueError?
+                            is_sentence = False
+                            # print("SENTENCE REJECTED BY GRAMMAR")
 
-                    if is_sentence:
-                        # capitalize() makes proper nouns lower case so we'll do our own capitalization
-                        the_sent = sofar[0].upper() + sofar[1:]
-                        # the_sent = sofar.capitalize()
-                        the_sent += punctuation
-                        sentences.append(the_sent) # append the non-orthographic sentence to the list
+                        if is_sentence:
+                            # capitalize() makes proper nouns lower case so we'll do our own capitalization
+                            the_sent = sofar[0].upper() + sofar[1:]
+                            # the_sent = sofar.capitalize()
+                            the_sent += punctuation
+                            sentences.append(the_sent) # append the non-orthographic sentence to the list
 
-                sofar += ' ' # get read for the next word
+                    sofar += ' ' # get read for the next word
 
         # ORIGINAL METHOD
         # sentences = self._to_sentences(sentences) # takes a list of sentences (strings) and returns a list of Sentences

@@ -81,33 +81,79 @@ class AbstractSummarizer(object):
         new_infos = []
 
         for i in infos:
-                
             # i.sentence is the Sentence
             text = i.sentence._text
 
             # if the text is not a substring of the summary...
-            if text not in summary:
+            if text not in summary and not any(i.order == ni.order for ni in new_infos):
                 
-                matches = []
-                for ni in new_infos:
-                    if i.order == ni.order:
-                        matches.append(ni)
+                # if the index (sentence) has not been used before
+                new_summary_length = length + len(text.split())
 
-                # now matches is the list of info objects
-                # that have the same order as i
+                # if we've reached max summary length...
+                if new_summary_length == 100:
+                    length += len(text.split()) # number of words
+                    summary += text
+                    new_infos.append(i)
+                # if the next sentence would make the summary too long
+                elif new_summary_length > 100: 
+                    pass
+                # otherwise, add it and keep looking
+                else:
+                    length += len(text.split()) # number of words
+                    summary += text
+                    new_infos.append(i)
+    
+        # str(length) is the length of the summary
+        if length < 97: # if the summary isn't long enough using only 1 ps per os...
+            length = 0
+            summary = ""
+            new_infos = []
+            
+            for i in infos:
+                # i.sentence is the Sentence
+                text = i.sentence._text
 
-                if matches:
-                    # pass
-                    # TODO: RETHINK THIS ALGORITHM
-                    accept = True
-                    for m in matches:
-                        x = longest_common_substring(text, m.sentence._text)
-                        x = len(x.split())
-                        if x > (.25*len(text.split())) or x > 4: # if 25% or more overlap or 5 or more words of overlap
-                            accept = False
-                            break
+                # if the text is not a substring of the summary...
+                if text not in summary:
+                    
+                    matches = []
+                    for ni in new_infos:
+                        if i.order == ni.order:
+                            matches.append(ni)
 
-                    if accept:
+                    # now matches is the list of info objects
+                    # that have the same order as i
+
+                    if matches:
+                        accept = True
+                        for m in matches:
+                            x = longest_common_substring(text, m.sentence._text)
+                            x = len(x.split())
+
+                            # TODO: Mess with this until it's better
+                            if x > (.25*len(text.split())) or x > 2: # if 25% or more overlap or more than 2 words of overlap
+                                accept = False
+                                break
+
+                        if accept:
+                            new_summary_length = length + len(text.split())
+
+                            # if we've reached max summary length...
+                            if new_summary_length == 100:
+                                length += len(text.split()) # number of words
+                                summary += text
+                                new_infos.append(i)
+                            # if the next sentence would make the summary too long
+                            elif new_summary_length > 100: 
+                                pass
+                            # otherwise, add it and keep looking
+                            else:
+                                length += len(text.split()) # number of words
+                                summary += text
+                                new_infos.append(i)
+
+                    else: # if the index (sentence) has not been used before
                         new_summary_length = length + len(text.split())
 
                         # if we've reached max summary length...
@@ -123,40 +169,7 @@ class AbstractSummarizer(object):
                             length += len(text.split()) # number of words
                             summary += text
                             new_infos.append(i)
-                    else:
-                        pass
-
-
-                    # longest_common_substring(s1, s2) returns overlap
-                    # we want the len() of the split() of that
-
-                    # go through the matches and compare with text
-                    # TODO: IF THE SENTENCE HAS BEEN USED BEFORE
-                    # TODO: right now, we use sentence # as order...
-                    # TODO: that won't work if we start accepting
-                    # TODO: multiple ps-sents from the same ortho
-                    # TODO: since they will have the same "order"
-                    # TODO: but when we put them back together
-                    # TODO: we need to know the actual order!
-                    
-
-                else: # if the index (sentence) has not been used before
-                    new_summary_length = length + len(text.split())
-
-                    # if we've reached max summary length...
-                    if new_summary_length == 100:
-                        length += len(text.split()) # number of words
-                        summary += text
-                        new_infos.append(i)
-                    # if the next sentence would make the summary too long
-                    elif new_summary_length > 100: 
-                        pass
-                    # otherwise, add it and keep looking
-                    else:
-                        length += len(text.split()) # number of words
-                        summary += text
-                        new_infos.append(i)
-    
+                            
         infos = new_infos
 
         # sort sentences by their order in document
